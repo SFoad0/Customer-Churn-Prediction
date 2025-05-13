@@ -33,6 +33,12 @@ def split_X_y(dataframe):
 def encode_features(dataframe):
 
     df = dataframe.copy()
+
+    services = ['OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 
+                'TechSupport', 'StreamingTV', 'StreamingMovies']
+
+    df_services = df[services].apply(lambda col: col.map(lambda x: 1 if x == 'Yes' else 0))
+    df['InternetServicesUsed'] = df_services.sum(axis=1)
     
     # binary_columns
     binary_cols = ['SeniorCitizen', 'Partner', 'Dependents', 'PhoneService', 'PaperlessBilling']
