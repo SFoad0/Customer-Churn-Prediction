@@ -1,5 +1,6 @@
 from pandas import get_dummies 
 from pandas import read_csv
+from pandas import to_numeric
 from imblearn.under_sampling import EditedNearestNeighbours
 from imblearn.over_sampling import SMOTENC
 
@@ -17,6 +18,10 @@ def split_X_y(dataframe):
     df.drop('customerID', axis=1, inplace=True)
     df = df.drop_duplicates().reset_index(drop=True)
     df.drop('gender', axis=1, inplace=True)
+    df["SeniorCitizen"]= df["SeniorCitizen"].map({0: "No", 1: "Yes"})
+    df['TotalCharges'] = to_numeric(df.TotalCharges, errors='coerce')
+    df.dropna(subset=['TotalCharges'], inplace=True)
+    df = df.reset_index(drop=True)
 
     X = df.drop(columns=['Churn'])
     y = df['Churn']
@@ -63,20 +68,14 @@ def undersampling_data(dataframe_X, series_y):
     X_train_resampled = dataframe_X.copy()
     y_train_resampled = series_y.copy()
 
-    X_train_resampled = encode_features(X_train_resampled)
-    y_train_resampled = y_train_resampled.map({'No': 0, 'Yes': 1})
+    dataframe_X = encode_features(dataframe_X)
+    series_y = series_y.map({'No': 0, 'Yes': 1})
 
     enn = EditedNearestNeighbours(kind_sel = 'mode', n_neighbors=3)
     X_enn, y_enn = enn.fit_resample(dataframe_X, series_y)
     kept_indices = enn.sample_indices_
     X_train_resampled = X_train_resampled.iloc[kept_indices].reset_index(drop=True)
     y_train_resampled = y_train_resampled.iloc[kept_indices].reset_index(drop=True)
-    
-    print("Before ENN:")
-    print(series_y.map({0: 'No', 1: 'Yes'}).value_counts())
-
-    print("After ENN:")
-    print(y_enn.map({0: 'No', 1: 'Yes'}).value_counts())
 
     return X_train_resampled, y_train_resampled
 
@@ -131,11 +130,6 @@ def oversampling_data(dataframe_X, series_y):
         X_resampled, y_resampled, phoneService_dependent_col, 'PhoneService',
         ['No', 'Yes'], phone_invalids
     )
-
-    print("Before SMOTE:")
-    print(series_y.value_counts())
-    print("After SMOTE:")
-    print(y_resampled.value_counts())
 
     return X_resampled, y_resampled
     
