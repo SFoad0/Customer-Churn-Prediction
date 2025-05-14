@@ -11,9 +11,6 @@ __pycache__/
 # OS
 .DS_Store
 
-# Model artifacts
-*.pkl
-*.joblib
 
 # Data
 data/
